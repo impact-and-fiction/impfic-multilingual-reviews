@@ -3,7 +3,11 @@ import os
 import random
 import requests
 import time
-from typing import List
+from typing import List, Union
+
+from playwright.sync_api import sync_playwright
+from playwright._impl._errors import Error
+from playwright._impl._errors import TimeoutError
 
 from parse import read_html_file, get_language_links, filter_language_links
 from parse import get_page_filename
@@ -17,6 +21,32 @@ TARGET_LANGS = [
     'nl',
     'zh'
 ]
+
+
+def fetch_html(url: str, wait_time: float = 5.0, max_attempts: int = 5,
+               headless: bool = True, manual_delay: int = 3) -> Union[str, None]:
+    with sync_playwright() as playwright:
+        webkit = playwright.webkit
+        desktop = playwright.devices["Desktop Firefox"]
+        browser = webkit.launch(headless=headless)
+        context = browser.new_context(**desktop)
+        page = context.new_page()
+        attempt = 0
+        while attempt < max_attempts:
+            try:
+                page.goto(url)
+                time.sleep(manual_delay)
+                html = page.inner_html('html')
+                browser.close()
+                time.sleep(wait_time)
+                return html
+            except (TimeoutError, Error):
+                attempt += 1
+                time.sleep(wait_time)
+        if attempt == max_attempts:
+            print(f"failed crawling thread {url}")
+            browser.close()
+    return None
 
 
 def sleep(min_sleep_time: int = 10, max_random_time: int = 10) -> None:
@@ -53,12 +83,12 @@ def download_review_pages(base_output_dir: str, html_input_dir):
             else:
                 print('downloading', link['href'])
                 response = requests.get(link['href'])
-                write_book_page(lang_dir, link['href'], response)
+                write_book_page(lang_dir, link['href'], response.text)
                 sleep(min_sleep_time=10, max_random_time=10)
 
 
-def write_book_page(page_dir: str, url: str, response: requests.Response) -> None:
+def write_book_page(page_dir: str, url: str, html_content: str) -> None:
     filename = get_page_filename(page_dir, url)
     with open(filename, 'wt') as fh:
-        fh.write(response.text)
+        fh.write(html_content)
 
