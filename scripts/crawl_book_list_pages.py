@@ -1,6 +1,7 @@
 import glob
 import os
 import re
+import time
 
 from bs4 import BeautifulSoup
 
@@ -9,7 +10,7 @@ from parse import get_book_list_pagination_urls
 
 
 def main():
-    book_list_dir = "../../data/reviews/Multilingual/Goodreads/HTML-2025-10-22/Book_list_pages"
+    book_list_dir = "../data/Book_list_pages"
     book_list_files = glob.glob(os.path.join(book_list_dir, '* _ Goodreads.html'))
     print(f"number of book_list_files: {len(book_list_files)}")
 
@@ -21,14 +22,17 @@ def main():
                 book_list = m.group(1)
             soup = BeautifulSoup(fh_in, features='xml')
             pagination_urls = get_book_list_pagination_urls(soup)
-            for url in pagination_urls[book_list]:
+            # print(f"pagination_urls: {pagination_urls}")
+            for url in pagination_urls:
                 page_num = url.split('?page=')[-1]
                 html = fetch_html(url)
-                page_filename = blf.replace('.html', f'--page{page_num}')
+                page_filename = blf.replace('.html', f'--page{page_num}.html')
+                print(page_filename)
                 if page_filename == blf:
                     raise ValueError(f"paginated filename '{page_filename}' cannot be the same as original filename")
                 with open(page_filename, 'wt') as fh_out:
                     fh_out.write(html)
+                time.sleep(2)
     return None
 
 
