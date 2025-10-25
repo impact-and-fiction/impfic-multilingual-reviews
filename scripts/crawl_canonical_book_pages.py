@@ -87,6 +87,5 @@ if __name__ == "__main__":
     today = datetime.date.today().isoformat()
     logging.basicConfig(format='%(asctime)s %(message)s',
                         filename=f'crawling-canonical_book_pages-{today}.log',
-                        #encoding='utf-8',
                         level=logging.DEBUG)
     main()
