@@ -15,7 +15,7 @@ from parse import read_html_file, get_page_filename
 TARGET_LANGS = {
     'it': "Italian",
     'de': "German",
-    'en': "English",
+    # 'en': "English",
     'es': "Spanish",
     'fa': "Persian",
     'ps': "Pashto",
@@ -65,22 +65,25 @@ def crawl_language_page(link, lang_base_dir: str):
         logging.info(f"creating language directory {lang_dir}")
     lang_file = get_page_filename(lang_dir, link['href'])
     if os.path.exists(lang_file):
-        logging.info('file exists:', lang_file)
+        logging.info(f'file exists: {lang_file}')
         return None
-    logging.info('downloading', link['href'])
+    logging.info(f"downloading: {link['href']}")
     try:
         html = fetch_html(link['href'], wait_time=2)
         with open(lang_file, 'wt') as fh_out:
             fh_out.write(html)
     except BaseException as err:
+        logging.error(f"Error downloading {link['href']}")
         logging.error(err)
 
 
 def main():
-    canonical_page_dir = '../../data/Canonical_book_pages'
+    canonical_page_dir = '../data/Canonical_book_pages'
     canonical_page_files = glob.glob(os.path.join(canonical_page_dir, '*.html'))
-    lang_base_dir = '../../data/Book_language_pages'
+    logging.info(f"num canonical_page_files: {len(canonical_page_files)}")
+    lang_base_dir = '../data/Book_language_pages'
     target_langs = list(TARGET_LANGS.keys())
+    logging.info(f"target_langs: {target_langs}")
     crawl_language_pages(canonical_page_files, lang_base_dir, target_langs)
 
 
