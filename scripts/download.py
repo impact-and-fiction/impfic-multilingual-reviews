@@ -1,4 +1,5 @@
 import glob
+import logging
 import os
 import random
 import requests
@@ -40,7 +41,9 @@ def fetch_html(url: str, wait_time: float = 5.0, max_attempts: int = 5,
                 browser.close()
                 time.sleep(wait_time)
                 return html
-            except (TimeoutError, Error):
+            except (TimeoutError, Error) as err:
+                logging.error(err)
+                print(err)
                 attempt += 1
                 time.sleep(wait_time)
         if attempt == max_attempts:

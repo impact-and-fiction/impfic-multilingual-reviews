@@ -75,6 +75,8 @@ def main():
             if os.path.exists(filepath):
                 continue
             logging.info(f"{bi+1} of {len(book_map)} - fetching HTML for book_id {book_id}")
+            if book_url.startswith('/book/show'):
+                book_url = f"https://goodreads.com{book_url}"
             html = fetch_html(book_url, wait_time=2)
             with open(filepath, 'wt') as fh_out:
                 fh_out.write(html)
